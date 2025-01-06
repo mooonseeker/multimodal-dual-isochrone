@@ -1,0 +1,221 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>multimodal-dual-isochrone v1.0</title>
+    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" />
+    <style type="text/css">
+        html,
+        body,
+        #container {
+            height: 100%;
+        }
+
+        .btn {
+            margin-left: 0.5rem;
+            width: 4rem;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cache.amap.com/lbs/static/jquery.range.css" />
+
+</head>
+
+<body>
+    <div id="container"></div>
+
+    <div class="input-card" style='width:25rem;'>
+        <h4 style='color:red'>Dual Isochrone</h4>
+        <div class="input-item">
+            <div class="input-item-prepend"><span class="input-item-text">地图选点</span></div>
+            <input id='lnglat' type="text" value='121.473107,31.232146'>
+        </div>
+        <div class="input-item">
+            <div class="input-item-prepend"><span class="input-item-text">出发位置 1</span></div>
+            <input id='lnglat1' type="text" value='121.473107,31.232146'>
+        </div>
+        <div class="input-item" style='margin-bottom:2rem;'>
+            <label>时长(分钟)</label>
+            <input type="hidden" id="t1" class="single-slider" value="30" />
+        </div>
+
+        <div class="input-item">
+            <div class="input-item-prepend"><span class="input-item-text">出发位置 2</span></div>
+            <input id='lnglat2' type="text" value='121.49974,31.239639'>
+        </div>
+        <div class="input-item" style='margin-bottom:2rem;'>
+            <label>时长(分钟)</label>
+            <input type="hidden" id="t2" class="single-slider" value="40" />
+        </div>
+
+        <div class="input-item">
+            <div class="input-item-prepend">
+                <label class="input-item-text">出行方式</label>
+            </div>
+            <select iname="v" id="v">
+                <option value="SUBWAY,BUS">地铁+公交</option>
+                <option selected value="SUBWAY">地铁</option>
+                <option value="BUS">公交</option>
+            </select>
+            <input id="search" type="button" class="btn" value="查询" />
+            <input id="clear" type="button" class="btn" value="清除" />
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        window._AMapSecurityConfig = {
+            securityJsCode: "YOURsecurityJsCode",
+        };
+    </script>
+    <script type="text/javascript"
+        src="https://webapi.amap.com/maps?v=2.0&key=YOURkey&plugin=AMap.ArrivalRange"></script>
+    <script src="https://cache.amap.com/lbs/static/jquery-1.9.1.js"></script>
+    <script src="https://cache.amap.com/lbs/static/jquery.range.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script>
+        var map = new AMap.Map("container", {
+            zoomEnable: true,
+            center: [121.473181, 31.232085],
+            zoom: 10
+        });
+
+        function getLnglat(e) {
+            var lnglat = e.lnglat;
+            document.getElementById('lnglat').value = e.lnglat.toString()
+            // getArriveRange();
+        }
+        map.on('click', getLnglat);
+
+        var centerMarker;
+        function addCenterMarker(position) {
+            if (!centerMarker) {
+                centerMarker = new AMap.Marker({
+                    map: map,
+                    position: position
+                });
+            } else {
+                centerMarker.setPosition(position)
+            }
+        }
+
+        var arrivalRange1, arrivalRange2;
+        var intersectionPolygons = polygons1 = polygons2 = [];
+
+        function getArriveRange() {
+            if (!arrivalRange1) {
+                arrivalRange1 = new AMap.ArrivalRange()
+            }
+            if (!arrivalRange2) {
+                arrivalRange2 = new AMap.ArrivalRange()
+            }
+            var lnglat1 = $("#lnglat1").val().split(',');
+            var t1 = $("#t1").val();
+            var lnglat2 = $("#lnglat2").val().split(',');
+            var t2 = $("#t2").val();
+            var v = $("#v").val();
+
+            addCenterMarker(lnglat1);
+
+            arrivalRange1.search(lnglat1, t1, function (status1, result1) {
+                map.remove(polygons1);
+                polygons1 = [];
+                if (result1.bounds) {
+                    for (var i = 0; i < result1.bounds.length; i++) {
+                        var polygon = new AMap.Polygon({
+                            fillColor: "#0000FF",
+                            fillOpacity: "0.4",
+                            strokeColor: "#00FF00",
+                            strokeOpacity: "0.5",
+                            strokeWeight: 1
+                        });
+                        polygon.setPath(result1.bounds[i]);
+                        polygons1.push(polygon);
+                    }
+                    // map.add(polygons1);
+                }
+            }, {
+                policy: v
+            });
+
+            arrivalRange2.search(lnglat2, t2, function (status2, result2) {
+                map.remove(polygons2);
+                polygons2 = [];
+                if (result2.bounds) {
+                    for (var i = 0; i < result2.bounds.length; i++) {
+                        var polygon = new AMap.Polygon({
+                            fillColor: "#FF0000",
+                            fillOpacity: "0.4",
+                            strokeColor: "#00FF00",
+                            strokeOpacity: "0.5",
+                            strokeWeight: 1
+                        });
+                        polygon.setPath(result2.bounds[i]);
+                        polygons2.push(polygon);
+                    }
+                    // map.add(polygons2);
+                }
+            }, {
+                policy: v
+            });
+
+            calculateIntersection(polygons1, polygons2);
+            map.setFitView();
+        }
+
+        function calculateIntersection(polygons1, polygons2) {
+            map.remove(intersectionPolygons);
+            intersectionPolygons = [];
+
+            for (var i = 0; i < polygons1.length; i++) {
+                for (var j = 0; j < polygons2.length; j++) {
+                    var path1 = polygons1[i].getPath();
+                    var path2 = polygons2[j].getPath();
+
+                    // 使用 ringRingClip 计算两个多边形的交集
+                    var intersection = AMap.GeometryUtil.ringRingClip(path1, path2);
+
+                    if (intersection && intersection.length > 0) {
+                        var intersectionPolygon = new AMap.Polygon({
+                            fillColor: "#FF00FF",
+                            fillOpacity: "0.6",
+                            strokeColor: "#FF0000",
+                            strokeOpacity: "0.8",
+                            strokeWeight: 2
+                        });
+                        intersectionPolygon.setPath(intersection);
+                        intersectionPolygons.push(intersectionPolygon);
+                    }
+                }
+            }
+
+            if (intersectionPolygons.length > 0) {
+                map.add(intersectionPolygons);
+                map.setFitView();
+            }
+        }
+
+        var isChanged = false;
+        $(function () {
+            $('.single-slider').jRange({
+                onstatechange: getArriveRange,
+                from: 1,
+                to: 45,
+                step: 1,
+                scale: [1, 15, 30, 45],
+                format: '%s',
+                width: 400,
+                showLabels: true,
+                showScale: true
+            });
+        });
+        getArriveRange();
+
+        $('#search').on('click', getArriveRange);
+        $('#v').on('change', getArriveRange);
+        $('#clear').on('click', function () { map.remove(polygons1) });
+
+    </script>
+</body>
+
+</html>
