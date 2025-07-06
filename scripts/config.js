@@ -8,8 +8,14 @@ export const MAP_CONFIG = {
 };
 
 export const MARKER_ICONS = {
-    start1: 'https://a.amap.com/jsapi_demos/static/blue.png',
-    start2: 'https://a.amap.com/jsapi_demos/static/red.png'
+    start1: {
+        iconClass: 'fa-map-marker-alt',
+        color: '#3388ff'
+    },
+    start2: {
+        iconClass: 'fa-map-marker-alt',
+        color: '#ff3333'
+    }
 };
 
 export const POLYGON_STYLES = {

@@ -16,18 +16,25 @@ export function addOrMoveMarker(position, markerNum) {
     const isMarker1 = markerNum === 1;
     const markerKey = isMarker1 ? 'marker1' : 'marker2';
     let marker = state.markers[markerKey];
-    const iconUrl = isMarker1 ? MARKER_ICONS.start1 : MARKER_ICONS.start2;
+    const iconConfig = isMarker1 ? MARKER_ICONS.start1 : MARKER_ICONS.start2;
+
+    // Create icon element
+    const iconElement = document.createElement('i');
+    iconElement.className = `fas ${iconConfig.iconClass}`;
+    iconElement.style.color = iconConfig.color;
+    iconElement.style.fontSize = '30px';
 
     if (!marker) {
         marker = new AMap.Marker({
             map: state.map,
             position: position,
-            icon: iconUrl,
-            offset: new AMap.Pixel(-13, -30)
+            content: iconElement.outerHTML,
+            offset: new AMap.Pixel(-15, -30) // Adjust offset for the new icon
         });
         state.markers[markerKey] = marker;
     } else {
         marker.setPosition(position);
+        marker.setContent(iconElement.outerHTML); // Update content if marker exists
     }
 }
 
