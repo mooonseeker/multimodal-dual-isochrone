@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
-    <title>multimodal-dual-isochrone v1.0</title>
+    <title>Multimodal N-Isochrone</title>
     <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" />
     <link rel="stylesheet" href="https://cache.amap.com/lbs/static/jquery.range.css" />
     <link rel="stylesheet" href="style.css" />
@@ -16,26 +16,24 @@
     <div id="container"></div>
 
     <div class="input-card">
-        <h4>Dual Isochrone</h4>
-        <div class="input-item">
-            <div class="input-item-prepend"><span class="input-item-text">出发位置 1</span></div>
-            <input id='lnglat1' type="text" value='121.475096,31.232632' />
-            <input type="button" class="btn" value="选点" id="select1" />
-        </div>
-        <div class="input-item">
-            <label>时长(分钟)</label>
-            <input type="hidden" id="t1" class="single-slider" value="30" />
+        <div class="card-header">
+            <h4>N-Point Isochrone</h4>
+            <div class="header-controls">
+                <button id="add-location" class="btn">添加地点</button>
+                <div class="manual-switch-container">
+                    <label for="manual-query-switch">手动</label>
+                    <input type="checkbox" id="manual-query-switch">
+                </div>
+            </div>
         </div>
 
-        <div class="input-item">
-            <div class="input-item-prepend"><span class="input-item-text">出发位置 2</span></div>
-            <input id='lnglat2' type="text" value='121.499702,31.239860' />
-            <input type="button" class="btn" value="选点" id="select2" />
+        <div class="divider"></div>
+
+        <div id="locations-container">
+            <!-- Location inputs will be dynamically inserted here -->
         </div>
-        <div class="input-item">
-            <label>时长(分钟)</label>
-            <input type="hidden" id="t2" class="single-slider" value="40" />
-        </div>
+
+        <div class="divider"></div>
 
         <div class="input-item">
             <div class="input-item-prepend">
@@ -46,7 +44,7 @@
                 <option selected value="SUBWAY">地铁</option>
                 <option value="BUS">公交</option>
             </select>
-            <input id="search" type="button" class="btn" value="查询" />
+            <input id="search" type="button" class="btn" value="查询" style="display: none;" />
             <input id="clear" type="button" class="btn" value="清除" />
         </div>
     </div>

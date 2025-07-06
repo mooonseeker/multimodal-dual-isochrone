@@ -1,96 +1,134 @@
-import { state } from './state.js';
-import { MAP_CONFIG, MARKER_ICONS, POLYGON_STYLES } from './config.js';
+import {
+    state
+} from './state.js';
+import {
+    MAP_CONFIG,
+    INTERSECTION_POLYGON_STYLE
+} from './config.js';
+import {
+    updateLocationFromMapClick
+} from './ui.js';
+
 
 export function initializeMap(containerId) {
     state.map = new AMap.Map(containerId, {
         zoomEnable: true,
         ...MAP_CONFIG
     });
+    state.map.on('click', (e) => {
+        if (state.activeInputId) {
+            updateLocationFromMapClick(e.lnglat);
+            state.map.setStatus('clickable'); // 确保地图可点击状态
+        }
+    });
     return state.map;
 }
 
-export function addOrMoveMarker(position, markerNum) {
+export function addOrMoveMarker(position, location) {
     if (Array.isArray(position)) {
         position = new AMap.LngLat(parseFloat(position[0]), parseFloat(position[1]));
     }
-    const isMarker1 = markerNum === 1;
-    const markerKey = isMarker1 ? 'marker1' : 'marker2';
-    let marker = state.markers[markerKey];
-    const iconConfig = isMarker1 ? MARKER_ICONS.start1 : MARKER_ICONS.start2;
 
-    // Create icon element
     const iconElement = document.createElement('i');
-    iconElement.className = `fas ${iconConfig.iconClass}`;
-    iconElement.style.color = iconConfig.color;
+    iconElement.className = 'fas fa-map-marker-alt';
+    iconElement.style.color = location.color;
     iconElement.style.fontSize = '30px';
 
-    if (!marker) {
-        marker = new AMap.Marker({
+    if (!location.marker) {
+        location.marker = new AMap.Marker({
             map: state.map,
             position: position,
             content: iconElement.outerHTML,
-            offset: new AMap.Pixel(-15, -30) // Adjust offset for the new icon
+            offset: new AMap.Pixel(-15, -30),
+            extData: location
         });
-        state.markers[markerKey] = marker;
     } else {
-        marker.setPosition(position);
-        marker.setContent(iconElement.outerHTML); // Update content if marker exists
+        location.marker.setPosition(position);
+        location.marker.setContent(iconElement.outerHTML);
+        location.marker.setExtData(location);
     }
 }
 
-function clearPolygons(polygonKey) {
-    state.map.remove(state.polygons[polygonKey]);
-    state.polygons[polygonKey] = [];
-}
+// Reimplementing based on the original successful pattern
+export function searchArrivalRange(location, vehicle, callback) {
+    // Create a new instance for each search to avoid conflicts
+    const arrivalRange = new AMap.ArrivalRange();
 
-export function searchArrivalRange(lnglat, time, vehicle, polygonKey, arrivalRangeKey) {
-    if (!state.arrivalRange[arrivalRangeKey]) {
-        state.arrivalRange[arrivalRangeKey] = new AMap.ArrivalRange();
-    }
+    location.polygons = []; // Clear previous results
 
-    clearPolygons(polygonKey);
-    const style = polygonKey === 'polygons1' ? POLYGON_STYLES.polygon1 : POLYGON_STYLES.polygon2;
-
-    state.arrivalRange[arrivalRangeKey].search(lnglat, time, function (status, result) {
-        if (result.bounds) {
+    arrivalRange.search(location.lnglat, location.time, (status, result) => {
+        if (result && result.bounds) {
             for (let i = 0; i < result.bounds.length; i++) {
-                const polygon = new AMap.Polygon({ ...style });
+                const polygon = new AMap.Polygon({
+                    // Temporary style, will not be displayed
+                    fillOpacity: 0,
+                    strokeOpacity: 0,
+                });
                 polygon.setPath(result.bounds[i]);
-                state.polygons[polygonKey].push(polygon);
+                location.polygons.push(polygon);
             }
         }
-        // This callback is async, we need to calculate intersection after both searches are done
-        if (state.polygons.polygons1.length > 0 && state.polygons.polygons2.length > 0) {
-            calculateAndDrawIntersection();
-        }
-    }, { policy: vehicle });
+        // Use callback to signal completion, mimicking the original async handling
+        callback();
+    }, {
+        policy: vehicle
+    });
 }
+
 
 export function calculateAndDrawIntersection() {
-    clearPolygons('intersectionPolygons');
+    clearIntersection();
 
-    for (const p1 of state.polygons.polygons1) {
-        for (const p2 of state.polygons.polygons2) {
-            const path1 = p1.getPath();
-            const path2 = p2.getPath();
-            const intersection = AMap.GeometryUtil.ringRingClip(path1, path2);
-
-            if (intersection && intersection.length > 0) {
-                const intersectionPolygon = new AMap.Polygon({ ...POLYGON_STYLES.intersection });
-                intersectionPolygon.setPath(intersection);
-                state.polygons.intersectionPolygons.push(intersectionPolygon);
-            }
-        }
+    const locationsWithPolygons = state.locations.filter(loc => loc.polygons && loc.polygons.length > 0);
+    if (locationsWithPolygons.length < 1) {
+        return;
     }
 
-    if (state.polygons.intersectionPolygons.length > 0) {
-        state.map.add(state.polygons.intersectionPolygons);
-        state.map.setFitView();
+    let currentIntersectionPolygons = locationsWithPolygons[0].polygons;
+
+    // Iteratively calculate the intersection.
+    for (let i = 1; i < locationsWithPolygons.length; i++) {
+        const nextLocationPolygons = locationsWithPolygons[i].polygons;
+        const newIntersectionPolygons = [];
+
+        for (const p1 of currentIntersectionPolygons) {
+            for (const p2 of nextLocationPolygons) {
+                const path1 = p1.getPath();
+                const path2 = p2.getPath();
+                // Use AMap's own geometry utility.
+                const intersection = AMap.GeometryUtil.ringRingClip(path1, path2);
+
+                if (intersection && intersection.length > 0) {
+                    const intersectionPolygon = new AMap.Polygon({
+                        ...INTERSECTION_POLYGON_STYLE,
+                        path: intersection // Let AMap handle the result directly
+                    });
+                    newIntersectionPolygons.push(intersectionPolygon);
+                }
+            }
+        }
+        currentIntersectionPolygons = newIntersectionPolygons;
+        // If at any point the intersection is empty, no need to continue.
+        if (currentIntersectionPolygons.length === 0) break;
+    }
+
+
+    if (currentIntersectionPolygons.length > 0) {
+        state.intersectionPolygons = currentIntersectionPolygons;
+        state.map.add(state.intersectionPolygons);
+        state.map.setFitView(state.intersectionPolygons);
+    }
+}
+
+
+function clearIntersection() {
+    if (state.intersectionPolygons.length > 0) {
+        state.map.remove(state.intersectionPolygons);
+        state.intersectionPolygons = [];
     }
 }
 
 export function clearAllLayers() {
-    clearPolygons('polygons1');
-    clearPolygons('polygons2');
-    clearPolygons('intersectionPolygons');
+    clearIntersection();
+    state.locations.forEach(loc => loc.polygons = []);
 }

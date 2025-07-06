@@ -10,18 +10,113 @@ body,
 }
 
 .input-card {
-    width: 25rem;
+    width: 30rem;
+    height: auto;
+    max-height: 90vh;
+    /* vh is viewport height, ensures card doesn't exceed screen */
+    overflow-y: auto;
+    /* Add scroll if content (many locations) exceeds max-height */
 }
 
 .input-card h4 {
     color: red;
+    margin: 0;
+    /* Remove default margin to help with alignment */
 }
 
-#lnglat1,
-#lnglat2 {
-    width: 12rem;
+/* Card Header Styles */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.manual-switch-container {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+#add-location {
+    width: auto;
+    /* Override default btn width */
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9em;
 }
 
 .input-item {
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
+}
+
+.location-group {
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    background-color: #f9f9f9;
+}
+
+.location-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.location-label {
+    font-weight: bold;
+}
+
+.location-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.location-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.lnglat-input {
+    flex-grow: 1;
+    min-width: 0;
+    /* Prevents input from overflowing flex container */
+}
+
+.time-slider-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.time-slider-container label {
+    margin-bottom: 0.5rem;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.remove-location {
+    background: none;
+    border: none;
+    color: #ff3333;
+    cursor: pointer;
+    padding: 0 0.5rem;
+    width: auto;
+}
+
+.remove-location:hover {
+    color: #cc0000;
+}
+
+.divider {
+    border-top: 1px solid #e0e0e0;
+    margin: 1rem 0;
 }

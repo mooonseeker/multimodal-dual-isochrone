@@ -7,37 +7,21 @@ export const MAP_CONFIG = {
     center: [121.473181, 31.232085]
 };
 
-export const MARKER_ICONS = {
-    start1: {
-        iconClass: 'fa-map-marker-alt',
-        color: '#3388ff'
-    },
-    start2: {
-        iconClass: 'fa-map-marker-alt',
-        color: '#ff3333'
-    }
+export const MAX_LOCATIONS = 7;
+export const LOCATION_COLORS = ['#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#9400D3'];
+
+export const INTERSECTION_POLYGON_STYLE = {
+    fillColor: "#FF00FF",
+    fillOpacity: "0.6",
+    strokeColor: "#FF0000",
+    strokeOpacity: "0.8",
+    strokeWeight: 2
 };
 
-export const POLYGON_STYLES = {
-    polygon1: {
-        fillColor: "#0000FF",
-        fillOpacity: "0.4",
-        strokeColor: "#00FF00",
-        strokeOpacity: "0.5",
-        strokeWeight: 1
-    },
-    polygon2: {
-        fillColor: "#FF0000",
-        fillOpacity: "0.4",
-        strokeColor: "#00FF00",
-        strokeOpacity: "0.5",
-        strokeWeight: 1
-    },
-    intersection: {
-        fillColor: "#FF00FF",
-        fillOpacity: "0.6",
-        strokeColor: "#FF0000",
-        strokeOpacity: "0.8",
-        strokeWeight: 2
-    }
-};
+export const INITIAL_LOCATIONS = [{
+    lnglat: '121.475096,31.232632',
+    time: 30
+}, {
+    lnglat: '121.499702,31.239860',
+    time: 40
+}];

@@ -1,17 +1,24 @@
+import {
+    INITIAL_LOCATIONS,
+    LOCATION_COLORS
+} from './config.js';
+
 export const state = {
     map: null,
-    activeInputId: 'lnglat1',
-    markers: {
-        marker1: null,
-        marker2: null
-    },
-    polygons: {
-        polygons1: [],
-        polygons2: [],
-        intersectionPolygons: []
-    },
-    arrivalRange: {
-        arrivalRange1: null,
-        arrivalRange2: null,
-    }
+    activeInputId: null, // Will be determined by UI interaction
+    locations: [],
+    intersectionPolygons: [],
+    appMode: 'instant', // 'instant' or 'manual'
 };
+
+// Initialize locations
+export function initializeLocations() {
+    state.locations = INITIAL_LOCATIONS.map((loc, index) => ({
+        id: `loc-${Date.now()}-${index}`,
+        lnglat: loc.lnglat.split(',').map(Number),
+        time: loc.time,
+        marker: null,
+        polygons: [],
+        color: LOCATION_COLORS[index]
+    }));
+}

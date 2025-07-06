@@ -1,6 +1,7 @@
 import { API_KEY, SECURITY_JS_CODE } from './config.js';
 import { initializeMap } from './mapService.js';
-import { setupUIEventListeners, setActiveInput, initialDraw } from './ui.js';
+import { setupUIEventListeners, initialDraw } from './ui.js';
+import { initializeLocations } from './state.js';
 
 function loadMapAPI() {
     window._AMapSecurityConfig = {
@@ -16,8 +17,8 @@ function loadMapAPI() {
 
 function init() {
     initializeMap('container');
+    initializeLocations();
     setupUIEventListeners();
-    setActiveInput('lnglat1'); // Set initial active input
     initialDraw();
 }
 
