@@ -6,43 +6,32 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
     <title>multimodal-dual-isochrone v1.0</title>
     <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" />
-    <style type="text/css">
-        html,
-        body,
-        #container {
-            height: 100%;
-        }
-
-        .btn {
-            margin-left: 0.5rem;
-            width: 4rem;
-        }
-    </style>
     <link rel="stylesheet" href="https://cache.amap.com/lbs/static/jquery.range.css" />
+    <link rel="stylesheet" href="style.css" />
 
 </head>
 
 <body>
     <div id="container"></div>
 
-    <div class="input-card" style='width:25rem;'>
-        <h4 style='color:red'>Dual Isochrone</h4>
+    <div class="input-card">
+        <h4>Dual Isochrone</h4>
         <div class="input-item">
             <div class="input-item-prepend"><span class="input-item-text">出发位置 1</span></div>
-            <input id='lnglat1' type="text" value='121.475096,31.232632' style="width: 12rem;" />
+            <input id='lnglat1' type="text" value='121.475096,31.232632' />
             <input type="button" class="btn" value="选点" id="select1" />
         </div>
-        <div class="input-item" style='margin-bottom:2rem;'>
+        <div class="input-item">
             <label>时长(分钟)</label>
             <input type="hidden" id="t1" class="single-slider" value="30" />
         </div>
 
         <div class="input-item">
             <div class="input-item-prepend"><span class="input-item-text">出发位置 2</span></div>
-            <input id='lnglat2' type="text" value='121.499702,31.239860' style="width: 12rem;" />
+            <input id='lnglat2' type="text" value='121.499702,31.239860' />
             <input type="button" class="btn" value="选点" id="select2" />
         </div>
-        <div class="input-item" style='margin-bottom:2rem;'>
+        <div class="input-item">
             <label>时长(分钟)</label>
             <input type="hidden" id="t2" class="single-slider" value="40" />
         </div>
@@ -61,209 +50,10 @@
         </div>
     </div>
 
-    <script>
-        function initMap() {
-            var map = new AMap.Map("container", {
-                zoomEnable: true,
-                center: [121.473181, 31.232085],
-                zoom: 10
-            });
-
-            var activeInputId = 'lnglat1';
-            var marker1, marker2;
-
-            function setActiveInput(inputId) {
-                activeInputId = inputId;
-                // 为激活的输入框添加视觉提示
-                var activeStyle = { 'border': '1px solid #ff8800' };
-                var defaultStyle = { 'border': '' };
-                $('#lnglat1').css(activeInputId === 'lnglat1' ? activeStyle : defaultStyle);
-                $('#lnglat2').css(activeInputId === 'lnglat2' ? activeStyle : defaultStyle);
-            }
-
-            function addOrMoveMarker(position, markerNum) {
-                // 如果 position 是数组(来自输入框), 转换为 LngLat 对象
-                if (Array.isArray(position)) {
-                    position = new AMap.LngLat(parseFloat(position[0]), parseFloat(position[1]));
-                }
-                var isMarker1 = markerNum === 1;
-                var marker = isMarker1 ? marker1 : marker2;
-                var iconUrl = isMarker1 ?
-                    'https://a.amap.com/jsapi_demos/static/blue.png' :
-                    'https://a.amap.com/jsapi_demos/static/red.png';
-
-                if (!marker) {
-                    marker = new AMap.Marker({
-                        map: map,
-                        position: position,
-                        icon: iconUrl,
-                        offset: new AMap.Pixel(-13, -30)
-                    });
-                    if (isMarker1) {
-                        marker1 = marker;
-                    } else {
-                        marker2 = marker;
-                    }
-                } else {
-                    marker.setPosition(position);
-                }
-            }
-
-            map.on('click', function (e) {
-                var position = e.lnglat;
-                $('#' + activeInputId).val(position.getLng() + ',' + position.getLat());
-                addOrMoveMarker(position, activeInputId === 'lnglat1' ? 1 : 2);
-            });
-
-
-            var arrivalRange1, arrivalRange2;
-            var intersectionPolygons = polygons1 = polygons2 = [];
-
-            function getArriveRange() {
-                if (!arrivalRange1) {
-                    arrivalRange1 = new AMap.ArrivalRange()
-                }
-                if (!arrivalRange2) {
-                    arrivalRange2 = new AMap.ArrivalRange()
-                }
-                var lnglat1 = $("#lnglat1").val().split(',');
-                var t1 = $("#t1").val();
-                var lnglat2 = $("#lnglat2").val().split(',');
-                var t2 = $("#t2").val();
-                var v = $("#v").val();
-
-                // 标记现在由地图点击事件和初始化逻辑管理
-
-                arrivalRange1.search(lnglat1, t1, function (status1, result1) {
-                    map.remove(polygons1);
-                    polygons1 = [];
-                    if (result1.bounds) {
-                        for (var i = 0; i < result1.bounds.length; i++) {
-                            var polygon = new AMap.Polygon({
-                                fillColor: "#0000FF",
-                                fillOpacity: "0.4",
-                                strokeColor: "#00FF00",
-                                strokeOpacity: "0.5",
-                                strokeWeight: 1
-                            });
-                            polygon.setPath(result1.bounds[i]);
-                            polygons1.push(polygon);
-                        }
-                    }
-                }, {
-                    policy: v
-                });
-
-                arrivalRange2.search(lnglat2, t2, function (status2, result2) {
-                    map.remove(polygons2);
-                    polygons2 = [];
-                    if (result2.bounds) {
-                        for (var i = 0; i < result2.bounds.length; i++) {
-                            var polygon = new AMap.Polygon({
-                                fillColor: "#FF0000",
-                                fillOpacity: "0.4",
-                                strokeColor: "#00FF00",
-                                strokeOpacity: "0.5",
-                                strokeWeight: 1
-                            });
-                            polygon.setPath(result2.bounds[i]);
-                            polygons2.push(polygon);
-                        }
-                    }
-                }, {
-                    policy: v
-                });
-
-                calculateIntersection(polygons1, polygons2);
-                map.setFitView();
-            }
-
-            function calculateIntersection(polygons1, polygons2) {
-                map.remove(intersectionPolygons);
-                intersectionPolygons = [];
-
-                for (var i = 0; i < polygons1.length; i++) {
-                    for (var j = 0; j < polygons2.length; j++) {
-                        var path1 = polygons1[i].getPath();
-                        var path2 = polygons2[j].getPath();
-
-                        var intersection = AMap.GeometryUtil.ringRingClip(path1, path2);
-
-                        if (intersection && intersection.length > 0) {
-                            var intersectionPolygon = new AMap.Polygon({
-                                fillColor: "#FF00FF",
-                                fillOpacity: "0.6",
-                                strokeColor: "#FF0000",
-                                strokeOpacity: "0.8",
-                                strokeWeight: 2
-                            });
-                            intersectionPolygon.setPath(intersection);
-                            intersectionPolygons.push(intersectionPolygon);
-                        }
-                    }
-                }
-
-                if (intersectionPolygons.length > 0) {
-                    map.add(intersectionPolygons);
-                    map.setFitView();
-                }
-            }
-
-            $(function () {
-                $('.single-slider').jRange({
-                    onstatechange: getArriveRange,
-                    from: 1,
-                    to: 45,
-                    step: 1,
-                    scale: [1, 15, 30, 45],
-                    format: '%s',
-                    width: 400,
-                    showLabels: true,
-                    showScale: true
-                });
-            });
-            getArriveRange();
-
-            $('#select1, #lnglat1').on('click focus', function () { setActiveInput('lnglat1'); });
-            $('#select2, #lnglat2').on('click focus', function () { setActiveInput('lnglat2'); });
-            setActiveInput('lnglat1'); // 设置初始激活的输入框
-
-            $('#search').on('click', getArriveRange);
-            $('#v').on('change', getArriveRange);
-            $('#clear').on('click', function () {
-                map.remove(polygons1);
-                map.remove(polygons2);
-                map.remove(intersectionPolygons);
-                polygons1 = [];
-                polygons2 = [];
-                intersectionPolygons = [];
-            });
-        }
-
-        fetch('API.yaml')
-            .then(response => response.text())
-            .then(text => {
-                const lines = text.split('\n');
-                const securityJsCode = lines.find(line => line.includes('securityJsCode'))
-                    .split(':')[1].trim();
-                const key = lines.find(line => line.includes('key:'))
-                    .split(':')[1].trim();
-
-                window._AMapSecurityConfig = {
-                    securityJsCode: securityJsCode
-                };
-
-                const script = document.createElement('script');
-                script.type = 'text/javascript';
-                script.src = `https://webapi.amap.com/maps?v=2.0&key=${key}&plugin=AMap.ArrivalRange`;
-                script.onload = initMap;
-                document.head.appendChild(script);
-            })
-            .catch(error => console.error('加载API配置失败:', error));
-    </script>
     <script src="https://cache.amap.com/lbs/static/jquery-1.9.1.js"></script>
     <script src="https://cache.amap.com/lbs/static/jquery.range.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script type="module" src="scripts/main.js"></script>
 </body>
 
 </html>

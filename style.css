@@ -1,0 +1,27 @@
+html,
+body,
+#container {
+    height: 100%;
+}
+
+.btn {
+    margin-left: 0.5rem;
+    width: 4rem;
+}
+
+.input-card {
+    width: 25rem;
+}
+
+.input-card h4 {
+    color: red;
+}
+
+#lnglat1,
+#lnglat2 {
+    width: 12rem;
+}
+
+.input-item {
+    margin-bottom: 2rem;
+}

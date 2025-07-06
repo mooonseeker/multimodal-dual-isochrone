@@ -1,27 +1,37 @@
 # Multimodal Dual Isochrone
 
-## v1.0 AMap ArrivalRange
+## Modular Architecture
 
-- Dual Isochrone Solution with AMap API.
-- Supported vehicles: Subway, Bus.
+### File Structure
+
+```plaintext
+multimodal-dual-isochrone/
+├── main.html            # Main HTML entry point
+├── style.css            # CSS styles
+├── scripts/             # JavaScript modules
+│   ├── config.js        # API configuration and constants
+│   ├── state.js         # Application state management
+│   ├── mapService.js    # AMap API interactions
+│   ├── ui.js            # UI event handling
+│   └── main.js          # Application entry point
+```
+
+### Module Dependencies
 
 ```mermaid
 flowchart TD
-    A@{ shape: lean-r, label: "Position A" }
-    tA@{ shape: lean-r, label: "Time A" }
-    V@{ shape: lean-r, label: "Vehicle" }
-    B@{ shape: lean-r, label: "Position B" }
-    tB@{ shape: lean-r, label: "Time B" }
-
-    pA[AMap.ArrivalRange]
-    pB[AMap.ArrivalRange]
-    p[AMap.GeometryUtil.ringRingClip]
-    IsoA@{ shape: win-pane, label: "IsochroneA" }
-    IsoB@{ shape: win-pane, label: "IsochroneB" }
-    Iso@{ shape: win-pane, label: "Dual Isochrone" }
-
-    A & tA --> pA --> IsoA
-    V --> pA & pB
-    B & tB --> pB --> IsoB
-    IsoA & IsoB --> p --> Iso
+    main.js --> config.js
+    main.js --> mapService.js
+    main.js --> ui.js
+    ui.js --> state.js
+    ui.js --> mapService.js
+    mapService.js --> state.js
+    mapService.js --> config.js
 ```
+
+### Key Features
+
+- Modular JavaScript architecture (ES6 modules)
+- Clear separation of concerns
+- Centralized state management
+- Configurable API settings
