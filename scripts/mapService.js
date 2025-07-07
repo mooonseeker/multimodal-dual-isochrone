@@ -18,7 +18,7 @@ export function initializeMap(containerId) {
     state.map.on('click', (e) => {
         if (state.activeInputId) {
             updateLocationFromMapClick(e.lnglat);
-            state.map.setStatus('clickable'); // 确保地图可点击状态
+            state.map.setStatus('clickable'); // Ensure map remains clickable
         }
     });
     return state.map;

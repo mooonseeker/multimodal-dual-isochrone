@@ -47,7 +47,7 @@ function handleLocationAction(event) {
 
     if (target.classList.contains('select-point')) {
         state.activeInputId = location.id;
-        renderLocations(); // 重新渲染以显示高亮
+        renderLocations(); // Re-render to show highlight
     } else if (target.classList.contains('remove-location')) {
         removeLocation(location.id);
     }
@@ -82,7 +82,7 @@ function renderLocations() {
         locationEl.className = 'location-group';
         locationEl.dataset.id = location.id;
         locationEl.style.borderLeft = `5px solid ${location.color}`;
-        // 高亮当前选中的地点
+        // Highlight currently selected location
         if (location.id === state.activeInputId) {
             locationEl.style.boxShadow = '0 0 10px rgba(255,127,0,0.7)';
             locationEl.style.borderLeft = `5px solid #FF7F00`;
@@ -201,7 +201,7 @@ export function updateLocationFromMapClick(lngLat) {
 
 function startSearch() {
     clearAllLayers();
-    // 清除选点聚焦状态
+    // Clear point selection focus state
     state.activeInputId = null;
     renderLocations();
 

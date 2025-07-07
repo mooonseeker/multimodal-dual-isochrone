@@ -8,7 +8,7 @@ export const state = {
     activeInputId: null, // Will be determined by UI interaction
     locations: [],
     intersectionPolygons: [],
-    appMode: 'instant', // 'instant' or 'manual'
+    appMode: 'manual', // 'instant' or 'manual'
 };
 
 // Initialize locations
